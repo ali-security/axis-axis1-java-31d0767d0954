@@ -91,6 +91,12 @@ Copyright:
                  <exclude name="test/wsdl/attachments/**/build.xml" unless="attachments.present"/>
                  <exclude name="test/wsdl/interop3/**/build.xml" />
 		 <exclude name="test/wsdl/adaptive/**/build.xml" />
+                 <!-- Sealed build: these components run WSDL2Java against live 2006-era endpoints
+                      (xmethods.net, soapinterop.java.sun.com, mssoapinterop.org, terraservice.net,
+                      perfectxml.net) that no longer exist, so their code generation cannot run. -->
+                 <exclude name="test/wsdl/interop/build.xml" />
+                 <exclude name="test/wsdl/terra/build.xml" />
+                 <exclude name="test/wsdl/literal/build.xml" />
                </patternset>
              </fileset>
         </param>

@@ -30,6 +30,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.w3c.dom.TypeInfo;
+import org.w3c.dom.UserDataHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -856,5 +858,75 @@ public class NodeImpl implements org.w3c.dom.Node, javax.xml.soap.Node,
             }
         }	
         this._isDirty = false;
+    }
+
+    /**
+     *  DOM Level 3 stubs
+     */
+
+    public void setIdAttributeNS(
+        String namespaceURI, String localName, boolean isId) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setIdAttribute(String name, boolean isId) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setIdAttributeNode(Attr idAttr, boolean isId) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public TypeInfo getSchemaTypeInfo() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object setUserData(
+        String key, Object data, UserDataHandler handler) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getBaseURI() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getTextContent() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isSameNode(Node other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setTextContent(String textContent) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object getUserData(String key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isDefaultNamespace(String namespaceURI) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object getFeature(String feature, String version) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isEqualNode(Node arg) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public short compareDocumentPosition(Node other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String lookupNamespaceURI(String prefix) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String lookupPrefix(String namespaceURI) {
+        throw new RuntimeException("not implemented");
     }
 }

@@ -213,4 +213,19 @@ public class Text extends NodeImpl implements javax.xml.soap.Text {
         return ( textRep.getData() != null ? textRep.getData().hashCode() : 0 );
     }
 
+    /**
+     *  DOM Level 3 stubs
+     */
+
+    public String getWholeText() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isElementContentWhitespace() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public org.w3c.dom.Text replaceWholeText(String content) {
+        throw new RuntimeException("not implemented");
+    }
 }

@@ -1,0 +1,141 @@
+# Sealed build of Apache Axis 1.4 (axis:axis). Upstream has no GitHub Actions CI; this workflow
+# reproduces the Ant build of the 1.4 release (Ant 1.6.5, source/target 1.3) and runs the project's
+# own `ant all-tests` (= `junit` PackageTests + `functional-tests` against the bundled SimpleAxisServer).
+name: seal-build
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-filter:
+        description: "Space/comma separated JUnit test classes (e.g. test.encoding.PackageTests); empty runs the full suite"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      JAVA_HOME: /opt/jdk1.5/usr/lib/jvm/java-1.5.0-sun-1.5.0.22
+      ANT_HOME: /opt/apache-ant-1.6.5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Sun JDK 1.5.0_22 (the JDK the earlier sealed axis 1.4 builds used): unpatched Axis 1.4 does not
+      # compile on Java 6+ (ProjectResourceBundle.clearCache() clashes with the static final
+      # ResourceBundle.clearCache() added in Java 6), and JDK13IO needs sun.awt.image.codec, absent
+      # from OpenJDK. Debian lenny's non-free sun-java5 packages are the archived binary distribution.
+      - name: Install Sun JDK 1.5.0_22
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/jdk5 && cd /tmp/jdk5
+          B=https://archive.debian.org/debian/pool/non-free/s/sun-java5
+          curl -sSfLO $B/sun-java5-jdk_1.5.0-22-0lenny1_amd64.deb
+          curl -sSfLO $B/sun-java5-bin_1.5.0-22-0lenny1_amd64.deb
+          curl -sSfLO $B/sun-java5-jre_1.5.0-22-0lenny1_all.deb
+          sha256sum -c - <<'EOF'
+          2dbe53a5935025a6003455c37852ff932be410a33e480c676c745e3ed68003e3  sun-java5-jdk_1.5.0-22-0lenny1_amd64.deb
+          ba300aeba14e208608cba13e75292346485301fd4b759863f3280e3701066c42  sun-java5-bin_1.5.0-22-0lenny1_amd64.deb
+          ebc5fc2f140818eab083bec5735630a3a98494553cde940953f1309b15e8b3c3  sun-java5-jre_1.5.0-22-0lenny1_all.deb
+          EOF
+          sudo mkdir -p /opt/jdk1.5
+          for d in *.deb; do sudo dpkg-deb -x "$d" /opt/jdk1.5; done
+          # The Debian package symlinks its config files to /etc/java-1.5.0-sun; resolve them inside the tree.
+          cd /opt/jdk1.5
+          for l in $(find usr/lib/jvm/java-1.5.0-sun-1.5.0.22 -xtype l); do
+            t=$(readlink "$l"); if [ -e ".$t" ]; then sudo rm "$l"; sudo cp ".$t" "$l"; fi
+          done
+          echo "$JAVA_HOME/bin" >> "$GITHUB_PATH"
+          "$JAVA_HOME/bin/java" -version
+
+      # Ant 1.6.5 is the Ant the public axis-1.4.jar was built with (its MANIFEST Ant-Version).
+      - name: Install Apache Ant 1.6.5
+        run: |
+          set -euo pipefail
+          cd /tmp
+          curl -sSfLO https://archive.apache.org/dist/ant/binaries/apache-ant-1.6.5-bin.tar.gz
+          echo "5c1a0114742cd2a4bff14c1234e6e30a1f6f3189779df7e535f6950be6b3fea0  apache-ant-1.6.5-bin.tar.gz" | sha256sum -c -
+          sudo tar xzf apache-ant-1.6.5-bin.tar.gz -C /opt
+          echo "$ANT_HOME/bin" >> "$GITHUB_PATH"
+
+      # Optional components build.xml compiles only when their API is on the classpath; the public
+      # jar contains all of them (attachments, servlet transport, JMS, BSF, Castor, Jimi, mail).
+      - name: Fetch optional build dependencies into lib/
+        run: |
+          set -euo pipefail
+          M=https://repo1.maven.org/maven2
+          curl -sSfL $M/javax/activation/activation/1.1/activation-1.1.jar -o lib/activation.jar
+          curl -sSfL $M/javax/mail/mail/1.4/mail-1.4.jar -o lib/mail.jar
+          curl -sSfL $M/javax/servlet/servlet-api/2.3/servlet-api-2.3.jar -o lib/servlet.jar
+          curl -sSfL $M/org/apache/geronimo/specs/geronimo-jms_1.1_spec/1.1/geronimo-jms_1.1_spec-1.1.jar -o lib/jms.jar
+          curl -sSfL $M/bsf/bsf/2.3.0/bsf-2.3.0.jar -o lib/bsf.jar
+          curl -sSfL $M/castor/castor/0.9.5.3/castor-0.9.5.3.jar -o lib/castor.jar
+          curl -sSfL $M/commons-net/commons-net/1.4.1/commons-net-1.4.1.jar -o lib/commons-net.jar
+          curl -sSfL $M/junit/junit/3.8.2/junit-3.8.2.jar -o lib/junit.jar
+          curl -sSfL https://imagej.net/ij/plugins/download/jimi/jimi.jar -o lib/jimi.jar
+          cd lib && sha256sum -c - <<'EOF'
+          2881c79c9d6ef01c58e62beea13e9d1ac8b8baa16f2fc198ad6e6776defdcdd3  activation.jar
+          96868f82264ebd9b7d41f04d78cbe87ab75d68a7bbf8edfb82416aabe9b54b6c  mail.jar
+          8478b902d0815ed066db860fb14cc5d404548d4b6348ab930b46270fcddeba68  servlet.jar
+          0fe8cfc0154855316054162a9b355f66a43d7e65fc71886e6d12c37d3aa5a5fc  jms.jar
+          df59c152a2a217fc8904a496b7366d7a1f0cefbb525823ab86eb7ef3448c7045  bsf.jar
+          f4bb4f0e189cb492c5ee1f949729aab002d306f37ff35465feb8dd54e2633c2d  castor.jar
+          05a3611dedf90d0ab3e8ed83dec4ee49200148c09425437eb9348562fde7d83c  commons-net.jar
+          ecdcc08183708ea3f7b0ddc96f19678a0db8af1fb397791d484aed63200558b0  junit.jar
+          7339b7b03baf0ea6f5d3235cef60a13d462405f99de88125969407b58c32a43e  jimi.jar
+          EOF
+
+      - name: Build axis.jar (ant compile)
+        run: |
+          set -euo pipefail
+          ant -lib lib/junit.jar compile
+          mkdir -p seal-dist
+          cp build/lib/axis.jar seal-dist/axis-1.4.jar
+          unzip -p seal-dist/axis-1.4.jar META-INF/MANIFEST.MF
+
+      - name: Upload axis-1.4.jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: axis-1.4
+          path: seal-dist/axis-1.4.jar
+          if-no-files-found: error
+
+      # The WSDL2Java code generation of the functional tests imports schemas/DTDs from
+      # schemas.xmlsoap.org, www.w3.org and docs.oasis-open.org over plain http; those hosts now
+      # redirect to https, which JDK 1.5 cannot follow. Serve them locally from their https origins.
+      - name: Start local http mirror for remote XML schemas
+        run: |
+          set -euo pipefail
+          H="schemas.xmlsoap.org www.w3.org docs.oasis-open.org"
+          mkdir -p /tmp/schema-mirror
+          sudo nohup python3 -I .github/scripts/seal-schema-mirror.py /tmp/schema-mirror $H > /tmp/schema-mirror.log 2>&1 &
+          sleep 3
+          echo "127.0.0.1 $H" | sudo tee -a /etc/hosts
+          curl -sSf -o /dev/null http://schemas.xmlsoap.org/soap/encoding/
+
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.test-filter }}" ]; then
+            ant -lib lib/junit.jar buildTest
+            CP="build/classes:$JAVA_HOME/lib/tools.jar"
+            for j in lib/*.jar lib/endorsed/*.jar test/lib/*.jar; do CP="$CP:$j"; done
+            for t in $(echo "${{ inputs.test-filter }}" | tr ',' ' '); do
+              echo "=== Running $t"
+              java -cp "$CP" junit.textui.TestRunner "$t"
+            done
+          else
+            # Upstream's own full test target: junit (PackageTests) + functional-tests.
+            ant -lib lib/junit.jar all-tests
+          fi
+
+      - name: Test summary
+        if: always() && inputs.test-filter == ''
+        run: python3 -I .github/scripts/seal-test-summary.py test-reports
+
+      - name: Schema mirror log
+        if: always()
+        run: if [ -f /tmp/schema-mirror.log ]; then cat /tmp/schema-mirror.log; fi

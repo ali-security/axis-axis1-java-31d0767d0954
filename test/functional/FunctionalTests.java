@@ -42,7 +42,8 @@ public class FunctionalTests extends TestCase
         suite.addTestSuite(TestTCPTransportSample.class);
         
         // file transport sample test
-        suite.addTestSuite(TestTransportSample.class);
+        // Sealed build: excluded, it calls the live services.xmethods.net stock-quote service, which no longer exists.
+        // suite.addTestSuite(TestTransportSample.class);
 
         // bid-buy test
         suite.addTestSuite(TestBidBuySample.class);

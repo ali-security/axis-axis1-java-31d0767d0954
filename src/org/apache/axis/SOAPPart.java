@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
+import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -46,6 +47,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
+import org.w3c.dom.UserDataHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -1279,6 +1281,103 @@ public class SOAPPart extends javax.xml.soap.SOAPPart implements Part
     
     public boolean isBodyStream() {
         return (currentForm == SOAPPart.FORM_INPUTSTREAM || currentForm == SOAPPart.FORM_BODYINSTREAM);        
+    }
+
+    /**
+     *  DOM Level 3 stubs
+     */
+
+    public String getBaseURI() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean getXmlStandalone() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object setUserData(
+        String key, Object data, UserDataHandler handler) {
+        throw new RuntimeException("not implemented");
+    }
+    
+    public void setDocumentURI(String documentURI) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setXmlStandalone(boolean xmlStandalone) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Node renameNode(Node n, String namespaceURI, String qualifiedName) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getInputEncoding() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getXmlEncoding() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setTextContent(String textContent) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isSameNode(Node other) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getDocumentURI() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object getFeature(String feature, String version) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isDefaultNamespace(String namespaceURI) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String lookupPrefix(String namespaceURI) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public boolean isEqualNode(Node arg) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void setXmlVersion(String xmlVersion) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getXmlVersion() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public Object getUserData(String key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String getTextContent() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public void normalizeDocument() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public String lookupNamespaceURI(String prefix) {
+        throw new RuntimeException("not implemented");
+    }
+
+    public DOMConfiguration getDomConfig() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public short compareDocumentPosition(Node other) {
+        throw new RuntimeException("not implemented");
     }
 }
 
